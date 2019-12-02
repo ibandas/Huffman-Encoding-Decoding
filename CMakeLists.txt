@@ -13,6 +13,7 @@ set(HUFF_COMMON
 # Example encoder/decoder for packed ASCII:
 add_cxx_program(encode src/encode.cxx ${SEVEN_COMMON})
 add_cxx_program(decode src/decode.cxx ${SEVEN_COMMON})
+add_cxx_program(huffman src/huff_tree.cxx)
 
 # Your Huffman encoder/decoder:
 add_cxx_program(huff src/huff.cxx ${HUFF_COMMON})
