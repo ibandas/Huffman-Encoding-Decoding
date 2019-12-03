@@ -1,6 +1,7 @@
 #include <iostream>
 #include "common.hxx"
 #include "bit_io.hxx"
+#include "huff_tree.hxx"
 #include <map>
 #include <queue>
 
@@ -54,38 +55,31 @@ int main(int argc, const char* argv[])
         }
     }
 
-    // Node struct
-    struct node_ {
-        char data_;
-        int frequency_;
-        node_(char data, int frequency) {
-            data_ = data;
-            frequency_ = frequency;
-        };
-    };
-
     // Comparison for frequency values
     struct node_cmp {
-        bool operator()(node_ const& n1, node_ const& n2)
+        bool operator()(Node const& n1, Node const& n2)
         {
-            return n1.frequency_ < n2.frequency_;
+            return n1.freq_ < n2.freq_;
         }
     };
 
-    priority_queue <node_, vector<node_>, node_cmp> frequencyPQ;
+    priority_queue <Node, vector<Node>, node_cmp> frequencyPQ;
 
     // Inserts into a PriorityQueue
     for (const auto &[k, v] : frequencyMap)
-        frequencyPQ.push(node_(k, v));
+        frequencyPQ.push(Node(k, v));
 
     // Prints out the PQ
     while (!frequencyPQ.empty()) {
-        node_ p = frequencyPQ.top();
+        Node p = frequencyPQ.top();
         frequencyPQ.pop();
-        cout << p.data_ << " " << p.frequency_ << "\n";
+        cout << p.data_ << " " << p.freq_ << "\n";
     }
 
     // Prints out size / amount of keys
     std::cout << "Size is " << frequencyMap.size() << '\n';
+
+    // Create tree
+
     return 0;
 }
