@@ -27,57 +27,10 @@ using namespace std;
 // Note: You get the bitcode by traversing the tree with left meaning 0 and right meaning 1
 // Example: 010 (left, right, left) is the 'A' ASCII value. So the key is 'A' and the value is bitcode '010'
 // (Done) 8. We read the file again and turn every char into it's respective bitcode value based on the table above
-// 9. Lastly, we serialize the tree with bits and store as metadeta at the top. This is done by
+// (Done) 9. Lastly, we serialize the tree with bits and store as metadeta at the top. This is done by
 //    using preorder traversal where every branch is 1 and every leaf is 0 followed by the bit value of
 //    the ASCII char
 // Example: 110[A]0[B] (left left (left-leaf A) (right-leaf B))
-
-void getNodes(Node *head, bool path, vector<Node*> &nodesList){
-    if (!head){
-        return;
-    }
-
-    if (head->data_ != internal_node) {
-        head->code_.push_back(path);
-        nodesList.push_back(head);
-    }
-
-    getNodes(head->left_, false, nodesList);
-
-    getNodes(head->right_, true, nodesList);
-
-}
-
-// Serializes the tree
-void serializeTree(Node *root, bofstream &out){
-    if (!root) {
-        return;
-    }
-
-    if (root->data_ != internal_node){
-        out.write(false);
-        out.write_bits(root->data_, 8);
-    }
-    else {
-        out.write(true);
-    }
-
-    serializeTree(root->left_, out);
-
-    serializeTree(root->right_, out);
-
-}
-
-
-void printList(vector<Node*> &nodesList){
-    Node *tmp;
-
-    cout << "\nChar \t" << "Freq \t" << "Code \n\n";
-
-    for (int i = 0; i < nodesList.size(); i++){
-//        cout << nodesList[i]->data_ << "\t " << nodesList[i]->freq_ << "\t " << nodesList[i]->code_ << "\n";
-    }
-}
 
 int main(int argc, const char* argv[])
 {
@@ -90,89 +43,19 @@ int main(int argc, const char* argv[])
     assert_good(in, argv);
 
     bofstream out(outfile);
-    // ofstream out(outfile);
     assert_good(out, argv);
 
-    // Build frequency map based off input file
-    char c;
-    map<char, int> frequencyMap;
-    pair<map<char,int>::iterator,bool> put;
-
-    while (in.read(&c, 1)) {
-        put = frequencyMap.insert(pair<char, int>(c, 1));
-        if (!put.second){
-            frequencyMap[c] = frequencyMap[c] + 1;
-        }
-    }
-
-    // Comparison for frequency values
-    struct node_cmp {
-        bool operator()(Node* const& n1, Node* const& n2)
-        {
-            return n1->freq_ < n2->freq_;
-        }
-    };
-
-    priority_queue <Node *, vector<Node *>, node_cmp> frequencyPQ;
-
-    // Inserts into a PriorityQueue
-    for (const auto &[k, v] : frequencyMap)
-        frequencyPQ.push(new Node(k, v));
-
-    // Create tree
-    while (frequencyPQ.size() > 1) {
-        // Remove first lowest
-        Node* min1 = frequencyPQ.top();
-        frequencyPQ.pop();
-
-        // Remove second lowest
-        Node* min2 = frequencyPQ.top();
-        frequencyPQ.pop();
-
-        // Merge into an internal node
-        Node * new_internal_node = new Node(internal_node, min1->freq_ + min2->freq_);
-        new_internal_node->left_ = min1;
-        new_internal_node->right_ = min2;
-
-        // Push the new internal node back into the frequencyPQ
-        frequencyPQ.push(new_internal_node);
-    }
-
-    // Build char (key) -> bit code (value) map based off input file
-    map<char, vector<bool>> bitMap;
-    pair<map<char, vector<bool>>::iterator,bool> bitPut;
-
-     vector<Node*> nodesList;
-     getNodes(frequencyPQ.top(), NULL, nodesList);
-
-     // Inserts into the bitMap they code associated with each character
-    for (int i = 0; i < nodesList.size(); i++){
-        bitMap.insert(pair<char, vector<bool>>(nodesList[i]->data_, nodesList[i]->code_));
-    }
-
-    // Serialize the tree
-    serializeTree(frequencyPQ.top(), out);
+    Tree heap = Tree(in, out);
 
     // Converts each character from the infile to it's respective bit code into the huff file
-    ifstream in_convert_bit(infile);
-    while (in_convert_bit.read(&c, 1)) {
-        for (int i = 0; i < bitMap[c].size(); i++) {
-            out.write(bitMap[c][i]);
-        }
-    }
-
-//     printList(nodesList);
-
-    return 0;
-}
-
-
-// Prints out the PQ
-//    while (!frequencyPQ.empty()) {
-//        Node* p = frequencyPQ.top();
-//        frequencyPQ.pop();
-//        cout << p->data_ << " " << p->freq_ << "\n";
+//    ifstream in_convert_bit(infile);
+//    while (in_convert_bit.read(&c, 1)) {
+//        for (int i = 0; i < bitMap[c].size(); i++) {
+//            out.write(bitMap[c][i]);
+//        }
 //    }
 
-// Prints out size / amount of keys
-// std::cout << "Size is " << frequencyMap.size() << '\n';
+
+    // Puff
+
+}
