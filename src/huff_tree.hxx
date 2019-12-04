@@ -13,13 +13,12 @@ class Node {
 public:
     char data_;
     int freq_;
-    string code_;
+    vector<bool> code_;
     Node* left_;
     Node* right_;
     Node(char data, int freq){
         data_ = data;
         freq_ = freq;
-        code_ = "";
         left_ = nullptr;
         right_ = nullptr;
     }
