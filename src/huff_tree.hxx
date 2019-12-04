@@ -2,7 +2,10 @@
 #include "bit_io.hxx"
 #include <iostream>
 #include <map>
-// Citation: https://www.geeksforgeeks.org/huffman-coding-greedy-algo-3/
+// Citations:
+// https://www.geeksforgeeks.org/huffman-coding-greedy-algo-3/
+// https://www.youtube.com/watch?v=5knuxdsRVko
+
 using namespace std;
 
 
@@ -10,11 +13,13 @@ class Node {
 public:
     char data_;
     int freq_;
+    string code_;
     Node* left_;
     Node* right_;
     Node(char data, int freq){
         data_ = data;
         freq_ = freq;
+        code_ = "";
         left_ = nullptr;
         right_ = nullptr;
     }
