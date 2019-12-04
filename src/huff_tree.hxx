@@ -31,7 +31,7 @@ public:
     struct node_cmp {
         bool operator()(Node* const& n1, Node* const& n2)
         {
-            return n1->freq_ < n2->freq_;
+            return n1->freq_ > n2->freq_;
         }
     };
 };
@@ -64,7 +64,7 @@ public:
         build_PQ();
         build_Tree();
         vector<bool> bools;
-        get_Nodes(frequencyPQ.top(), bools);
+        get_Nodes(frequencyPQ.top(), false, bools);
         printList();
         serialize_tree(frequencyPQ.top(), outfile);
     }
@@ -125,22 +125,19 @@ public:
     }
 
     // Creates the code for each char
-    void get_Nodes(Node *root, vector<bool> bools) {
+    void get_Nodes(Node *root, bool val, vector<bool> bools) {
         if (!root){
             return;
         }
-
+        bools.push_back(val);
         if (root->data_ != internal_node) {
             root->code_ = bools;
             nodesList.push_back(root);
         }
+        
+        get_Nodes(root->left_, false, bools);
 
-        bools.push_back(false);
-        get_Nodes(root->left_, bools);
-
-
-        bools.push_back(true);
-        get_Nodes(root->right_, bools);
+        get_Nodes(root->right_, true, bools);
     }
 
     void printList(){
