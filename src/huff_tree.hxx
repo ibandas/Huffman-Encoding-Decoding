@@ -144,7 +144,6 @@ public:
     }
 
     void printList(){
-        Node *tmp;
         cout << "\nChar \t" << "Freq \t" << "Code \n\n";
 
         for (int i = 0; i < nodesList.size(); i++){
