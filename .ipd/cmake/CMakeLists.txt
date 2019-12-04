@@ -34,7 +34,7 @@ endfunction (add_c_program)
 # language to C++ 14
 function (add_cxx_program name)
     add_executable(${name} ${ARGN})
-    set_property(TARGET ${name} PROPERTY CXX_STANDARD           14)
+    set_property(TARGET ${name} PROPERTY CXX_STANDARD           17)
     set_property(TARGET ${name} PROPERTY CXX_STANDARD_REQUIRED  On)
     set_property(TARGET ${name} PROPERTY CXX_EXTENSIONS         Off)
     windows_setup(${name})

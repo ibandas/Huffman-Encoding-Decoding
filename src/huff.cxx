@@ -11,7 +11,6 @@
 #define DEFAULT_INFILE  "test-files/hamlet-ascii.txt"
 #define DEFAULT_OUTFILE "test-files/hamlet-ascii.txt.huff"
 // #define DEFAULT_OUTFILE "test-files/hamlet-ascii-test.txt"
-#define internal_node '\0'
 
 using namespace ipd;
 using namespace std;

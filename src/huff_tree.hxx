@@ -4,29 +4,44 @@
 #include <iostream>
 #include <map>
 #include <queue>
+
 // Citations:
 // https://www.geeksforgeeks.org/huffman-coding-greedy-algo-3/
 // https://www.youtube.com/watch?v=5knuxdsRVko
 
-#define internal_node '\0'
-
 using namespace std;
 using namespace ipd;
 
+using frequency_table_t = std::map<char, size_t>;
+using code_word_t       = std::vector<bool>;
+using code_word_table_t = std::map<char, code_word_t>;
 
 class Node {
 public:
     char data_;
     int freq_;
-    vector<bool> code_;
     Node* left_;
     Node* right_;
-    Node(char data, int freq){
-        data_ = data;
-        freq_ = freq;
-        left_ = nullptr;
-        right_ = nullptr;
+
+    Node(char data, int freq)
+            : data_(data)
+            , freq_(freq)
+            , left_(nullptr)
+            , right_(nullptr)
+    { }
+
+    Node(Node* left, Node* right)
+            : data_(0)
+            , freq_(left->freq_ + right->freq_)
+            , left_(left)
+            , right_(right)
+    { }
+
+    bool is_leaf() const
+    {
+        return left_ == nullptr;
     }
+
     // Comparison for frequency values
     struct node_cmp {
         bool operator()(Node* const& n1, Node* const& n2)
@@ -36,38 +51,51 @@ public:
     };
 };
 
+class HuffmanTree {
+public:
+    explicit HuffmanTree(frequency_table_t const&);
+    explicit HuffmanTree(ipd::bistream&);
+
+    char decode_symbol(ipd::bistream&) const;
+    void serialize(ipd::bostream&) const;
+
+    ~HuffmanTree();
+
+private:
+    Node* root_;
+};
+
+void encode(std::istream&, ipd::bostream&);
+
+void decode(ipd::bistream&, std::ostream&);
+
+Node* build_tree(frequency_table_t const&);
+
+void build_code_word_table(Node const*,
+                           code_word_t const&,
+                           code_word_table_t& cwt);
+
+// Serializes the tree to the huff file
+void serialize_tree(Node const*, ipd::bostream&);
+
+void encode_stream(code_word_table_t const&,
+                   std::istream&, ipd::bostream&);
+
+Node* deserialize_tree(ipd::bistream&);
+
+char decode_symbol(Node const*, ipd::bistream&);
+
 class Tree {
 public:
     // Frequency of every character is stored in here
-    map<char, int> frequencyMap;
+    frequency_table_t frequencyMap;
+
     // Build char (key) -> bit code (value) map based off input file
-    map<char, vector<bool>> bitMap;
-    pair<map<char, vector<bool>>::iterator,bool> bitPut;
+    code_word_table_t bitMap;
+
     // Priority Queue
     priority_queue <Node *, vector<Node *>, Node::node_cmp> frequencyPQ;
 
-    // Node list that will be used to make the bitMap.
-    // This will probably just be taken out after we modify the current algorithm to
-    // insert into the bitMap through tree traversal
-    vector<Node*> nodesList;
-
-
-    Tree(ifstream &infile, bostream &outfile){
-        char c;
-        pair<map<char,int>::iterator,bool> put;
-        while (infile.read(&c, 1)) {
-            put = frequencyMap.insert(pair<char, int>(c, 1));
-            if (!put.second){
-                frequencyMap[c] = frequencyMap[c] + 1;
-            }
-        }
-        build_PQ();
-        build_Tree();
-        vector<bool> bools;
-        get_Nodes(frequencyPQ.top(), false, bools);
-        printList();
-        serialize_tree(frequencyPQ.top(), outfile);
-    }
     // Inserts into a PriorityQueue
     void build_PQ() {
         for (const auto &[k, v] : frequencyMap) {
@@ -75,25 +103,7 @@ public:
         }
     }
     // Builds the tree based off the built PQ
-    void build_Tree(){
-        while (frequencyPQ.size() > 1) {
-            // Remove first lowest
-            Node* min1 = frequencyPQ.top();
-            frequencyPQ.pop();
-
-            // Remove second lowest
-            Node* min2 = frequencyPQ.top();
-            frequencyPQ.pop();
-
-            // Merge into an internal node
-            Node * new_internal_node = new Node(internal_node, min1->freq_ + min2->freq_);
-            new_internal_node->left_ = min1;
-            new_internal_node->right_ = min2;
-
-            // Push the new internal node back into the frequencyPQ
-            frequencyPQ.push(new_internal_node);
-        }
-    }
+    void build_Tree();
 
     // Prints the PQ
     void print_PQ(){
@@ -105,34 +115,15 @@ public:
         }
     }
 
-    // Serializes the tree to the huff file
-    void serialize_tree(Node *root, bostream &outfile){
-        if (!root) {
-            return;
-        }
-
-        if (root->data_ != internal_node){
-            outfile.write(false);
-            outfile.write_bits(root->data_, 8);
-        }
-        else {
-            outfile.write(true);
-        }
-
-        serialize_tree(root->left_, outfile);
-
-        serialize_tree(root->right_, outfile);
-    }
-
     // Creates the code for each char
-    void get_Nodes(Node *root, bool val, vector<bool> bools) {
+    void get_Nodes(Node *root, bool val, code_word_t bools) {
         if (!root){
             return;
         }
         bools.push_back(val);
-        if (root->data_ != internal_node) {
-            root->code_ = bools;
-            nodesList.push_back(root);
+        if (root->is_leaf()) {
+//            root->code_ = bools;
+//            nodesList.push_back(root);
         }
         
         get_Nodes(root->left_, false, bools);
@@ -140,23 +131,23 @@ public:
         get_Nodes(root->right_, true, bools);
     }
 
-    void printList(){
-        cout << "\nChar \t" << "Freq \t" << "Code \n\n";
-
-        for (int i = 0; i < nodesList.size(); i++){
-            cout << nodesList[i]->data_ << "\t " << nodesList[i]->freq_ << "\t ";
-            // cout<< "Size: " << nodesList[i]->code_.size();
-            for (int j = 0; j < nodesList[i]->code_.size(); j++) {
-                if (nodesList[i]->code_[j]) {
-                    cout << '1';
-                }
-                else {
-                    cout << '0';
-                }
-            }
-            cout << "\n";
-        }
-    }
+//    void printList(){
+//        cout << "\nChar \t" << "Freq \t" << "Code \n\n";
+//
+//        for (int i = 0; i < nodesList.size(); i++){
+//            cout << nodesList[i]->data_ << "\t " << nodesList[i]->freq_ << "\t ";
+//            // cout<< "Size: " << nodesList[i]->code_.size();
+//            for (int j = 0; j < nodesList[i]->code_.size(); j++) {
+//                if (nodesList[i]->code_[j]) {
+//                    cout << '1';
+//                }
+//                else {
+//                    cout << '0';
+//                }
+//            }
+//            cout << "\n";
+//        }
+//    }
 };
 
 
