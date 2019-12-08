@@ -21,10 +21,9 @@ void encode_huff(std::istream &infile, ipd::bostream &outfile)
 
     code_word_table_t cwt;
     build_code_word_table(huffman_tree, false, {}, cwt);
-    cout << CHAR_BIT * sizeof len;
     outfile.write_bits(len, CHAR_BIT * sizeof len);
     serialize_tree(huffman_tree, outfile);
-    encode_stream(cwt, infile, outfile);
+//    encode_stream(cwt, infile, outfile);
 }
 
 Node* build_tree(frequency_table_t const& frequencyMap)
@@ -68,9 +67,11 @@ void build_code_word_table(Node *root, bool val, code_word_t bools, code_word_ta
 
 void serialize_tree(Node const* node, bostream &outfile){
     if (node->is_leaf()){
+        cout << "Leaf";
         outfile.write(false);
         outfile.write_bits(node->data_, 8);
     } else {
+        cout << "Internal";
         outfile.write(true);
         serialize_tree(node->left_, outfile);
         serialize_tree(node->right_, outfile);
@@ -96,24 +97,27 @@ void decode_huff(ipd::bistream& infile, std::ostream& outfile)
     infile.read_bits(len, CHAR_BIT * sizeof len);
     auto tree = deserialize_tree(infile);
 
-    while (len--) {
-        outfile << decode_symbol(tree, infile);
-    }
+    cout << tree->left_->left_->right_->data_;
+
+//    while (len--) {
+//        outfile << decode_symbol(tree, infile);
+//    }
 }
 
 Node* deserialize_tree(ipd::bistream& infile)
 {
     bool b;
+    char c;
     infile.read(b);
-    Node* root;
-    if (b) {
-        root = new Node (deserialize_tree(infile), deserialize_tree(infile));
-    }
-    else {
-        char c = infile.read_bits(b, 8);
+    if (b == false) {
+        // cout << "False! \n";
+        c = infile.read_bits(b, 8);
         return new Node(c, 0);
     }
-    return root;
+    else {
+        // cout << "True!";
+        return new Node(deserialize_tree(infile), deserialize_tree(infile));
+    }
 }
 
 char decode_symbol(Node const* root, ipd::bistream& infile)
