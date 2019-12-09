@@ -28,7 +28,6 @@ int main(int argc, const char* argv[])
     bofstream out(outfile);
     assert_good(out, argv);
 
-
     encode_huff(in, out);
 
 }
