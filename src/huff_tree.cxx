@@ -20,7 +20,7 @@ void encode_huff(std::istream &infile, ipd::bostream &outfile)
     auto huffman_tree = build_tree(frequencyMap);
 
     code_word_table_t cwt;
-    build_code_word_table(huffman_tree, false, false, {}, cwt);
+    build_code_word_table(huffman_tree, {}, cwt);
     outfile.write_bits(len, CHAR_BIT * sizeof len);
     serialize_tree(huffman_tree, outfile);
     encode_stream(cwt, infile, outfile);
@@ -50,20 +50,24 @@ Node* build_tree(frequency_table_t const& frequencyMap)
 }
 
 // Creates the code for each char
-void build_code_word_table(Node *root, bool val, bool firstValue, code_word_t bools, code_word_table_t& cwt) {
-    if (!root){
-        return;
-    }
-    if (firstValue){
-        bools.push_back(val);
-    }
+void build_code_word_table(Node *root, code_word_t bools, code_word_table_t& cwt) {
     if (root->is_leaf()) {
         cwt[root->data_] = bools;
     }
+    recursively_build_cwt(root->left_, false, bools, cwt);
+    recursively_build_cwt(root->right_, true, bools, cwt);
+}
 
-    build_code_word_table(root->left_, false, true, bools, cwt);
-
-    build_code_word_table(root->right_, true, true, bools, cwt);
+void recursively_build_cwt(Node *root, bool val, code_word_t bools, code_word_table_t& cwt) {
+    if (!root){
+        return;
+    }
+    bools.push_back(val);
+    if (root->is_leaf()) {
+        cwt[root->data_] = bools;
+    }
+    recursively_build_cwt(root->left_, false, bools, cwt);
+    recursively_build_cwt(root->right_, true, bools, cwt);
 }
 
 

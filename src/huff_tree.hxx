@@ -58,7 +58,10 @@ void decode_huff(ipd::bistream&, std::ostream&);
 Node* build_tree(frequency_table_t const&);
 
 void build_code_word_table(Node *,
-                           bool,
+                           code_word_t,
+                           code_word_table_t& cwt);
+
+void recursively_build_cwt(Node *,
                            bool,
                            code_word_t,
                            code_word_table_t& cwt);
