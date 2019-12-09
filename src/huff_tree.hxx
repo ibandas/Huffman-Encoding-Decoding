@@ -71,6 +71,6 @@ void encode_stream(code_word_table_t&,
 
 Node* deserialize_tree(ipd::bistream&);
 
-char decode_symbol(Node const*, ipd::bistream&);
+char decode_symbol(Node const*, ipd::bistream&, std::ostream& outfile);
 
 

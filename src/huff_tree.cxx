@@ -97,11 +97,8 @@ void decode_huff(ipd::bistream& infile, std::ostream& outfile)
     infile.read_bits(len, CHAR_BIT * sizeof len);
     auto tree = deserialize_tree(infile);
 
-    char c;
     while (len--) {
-        c = decode_symbol(tree, infile);
-        cout << c;
-        // outfile << decode_symbol(tree, infile);
+        decode_symbol(tree, infile, outfile);
     }
 }
 
@@ -119,19 +116,20 @@ Node* deserialize_tree(ipd::bistream& infile)
     }
 }
 
-char decode_symbol(Node const* root, ipd::bistream& infile)
+char decode_symbol(Node const* root, ipd::bistream& infile, std::ostream& outfile)
 {
     if (root->is_leaf()){
-        cout << root->data_;
-        return root->data_;
+        char c = root->data_;
+        outfile << c;
+        return c;
     }
     bool b;
     infile.read(b);
     if(b) {
-        decode_symbol(root->right_, infile);
+        decode_symbol(root->right_, infile, outfile);
     }
     else {
-       decode_symbol(root->left_, infile);
+       decode_symbol(root->left_, infile, outfile);
     }
 }
 
