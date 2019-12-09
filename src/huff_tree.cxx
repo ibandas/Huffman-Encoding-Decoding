@@ -20,7 +20,7 @@ void encode_huff(std::istream &infile, ipd::bostream &outfile)
     auto huffman_tree = build_tree(frequencyMap);
 
     code_word_table_t cwt;
-    build_code_word_table(huffman_tree, false, {}, cwt);
+    build_code_word_table(huffman_tree, false, false, {}, cwt);
     outfile.write_bits(len, CHAR_BIT * sizeof len);
     serialize_tree(huffman_tree, outfile);
     encode_stream(cwt, infile, outfile);
@@ -50,18 +50,20 @@ Node* build_tree(frequency_table_t const& frequencyMap)
 }
 
 // Creates the code for each char
-void build_code_word_table(Node *root, bool val, code_word_t bools, code_word_table_t& cwt) {
+void build_code_word_table(Node *root, bool val, bool firstValue, code_word_t bools, code_word_table_t& cwt) {
     if (!root){
         return;
     }
-    bools.push_back(val);
+    if (firstValue){
+        bools.push_back(val);
+    }
     if (root->is_leaf()) {
         cwt[root->data_] = bools;
     }
 
-    build_code_word_table(root->left_, false, bools, cwt);
+    build_code_word_table(root->left_, false, true, bools, cwt);
 
-    build_code_word_table(root->right_, true, bools, cwt);
+    build_code_word_table(root->right_, true, true, bools, cwt);
 }
 
 
@@ -95,8 +97,11 @@ void decode_huff(ipd::bistream& infile, std::ostream& outfile)
     infile.read_bits(len, CHAR_BIT * sizeof len);
     auto tree = deserialize_tree(infile);
 
+    char c;
     while (len--) {
-        outfile << decode_symbol(tree, infile);
+        c = decode_symbol(tree, infile);
+        cout << c;
+        // outfile << decode_symbol(tree, infile);
     }
 }
 
@@ -107,7 +112,6 @@ Node* deserialize_tree(ipd::bistream& infile)
     infile.read(b);
     if (!b) {
         infile.read_bits(c, 8);
-        cout << c;
         return new Node(c, 0);
     }
     else {
@@ -117,17 +121,17 @@ Node* deserialize_tree(ipd::bistream& infile)
 
 char decode_symbol(Node const* root, ipd::bistream& infile)
 {
-    Node const* tmp = root;
-    if (tmp->is_leaf()){
-        return tmp->data_;
+    if (root->is_leaf()){
+        cout << root->data_;
+        return root->data_;
     }
     bool b;
     infile.read(b);
     if(b) {
-        decode_symbol(tmp->right_, infile);
+        decode_symbol(root->right_, infile);
     }
     else {
-       decode_symbol(tmp->left_, infile);
+       decode_symbol(root->left_, infile);
     }
 }
 

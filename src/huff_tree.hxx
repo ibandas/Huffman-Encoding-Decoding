@@ -59,6 +59,7 @@ Node* build_tree(frequency_table_t const&);
 
 void build_code_word_table(Node *,
                            bool,
+                           bool,
                            code_word_t,
                            code_word_table_t& cwt);
 
