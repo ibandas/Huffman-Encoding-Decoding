@@ -51,9 +51,6 @@ Node* build_tree(frequency_table_t const& frequencyMap)
 
 // Creates the code for each char
 void build_code_word_table(Node *root, code_word_t bools, code_word_table_t& cwt) {
-    if (root->is_leaf()) {
-        cwt[root->data_] = bools;
-    }
     recursively_build_cwt(root->left_, false, bools, cwt);
     recursively_build_cwt(root->right_, true, bools, cwt);
 }
