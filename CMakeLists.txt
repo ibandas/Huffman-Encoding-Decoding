@@ -8,6 +8,7 @@ set(SEVEN_COMMON ${COMMON} src/7coder.cxx)
 # Add files for building huff, puff, and huffman_test to this list and
 # they will be included in all three:
 set(HUFF_COMMON
+        src/huff_tree.cxx
         ${COMMON})
 
 # Example encoder/decoder for packed ASCII:
